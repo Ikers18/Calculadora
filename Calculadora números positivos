@@ -1,0 +1,681 @@
+.model small
+.stack 100h
+.data   
+    msg1 db "Hola, ingresa el primer numero$"    
+    msg2 db "Ingresa el segundo numero$"
+    msg3 db "Que operacion deseas realizar? 1)Suma. 2)Resta. 3) Multiplicacion. 4) Division.$" 
+    msg4 db "El resultado es:$" 
+    num1 db 5 dup ("$")
+    num2 db 5 dup ("$") 
+    num3 db 1 dup ("$") 
+    R db 6 dup ("$")
+    V db 6 dup ("$")
+    
+    pn dw ?
+    sn dw ?
+    OP dw ?
+    
+    
+    ; Variables extra
+    vA dw 0h
+    bA dw 0h 
+.code                                      
+
+    main PROC
+                      
+        mov ax, data
+        mov ds, ax
+        
+
+;Imprime el primer numero y lo guarda
+        mov ah, 09h
+        lea dx, msg1
+        int 21h
+    
+        mov ah, 02h
+        mov dl, 0Ah
+        int 21h
+          
+
+        mov ah, 02h
+        mov dl, 0Dh
+        int 21h  
+    
+    
+        mov si,0
+        
+        lea bx, num1
+    
+        push ax
+        push bx
+        push si
+               
+        ; Cargar en la pila los datos ingresados, clonar los registros, evitar dejar residuos de su maniupulacion.
+        
+        xor si, si
+        
+        leerSiguienteCaracter:
+        
+        mov ah, 01h ; Ejecutar la funcion 01h de la interrupcion 21h que permite leer un solo caracter, almacenado en al.
+        int 21h
+                  
+        ; Proceso de validacion del numero          
+                  
+        cmp al, "-" 
+            jne procesarDigito;  salto condicional, se produce si la comparacion anterior es falsa.
+        cmp si, 0h
+            jne terminarLectura
+        
+        mov [bx + si], al ; Alojar el dato digitado.
+        inc si ; Incrementar 1 para comparar la siguiente posicion del string. 
+        
+        jmp leerSiguienteCaracter
+        
+        procesarDigito:
+            
+            cmp al, "0"
+                jl terminarLectura ; si es menor que 0 terminar lectura.
+            cmp al, "9"
+                jg terminarLectura ;  si es mayor que 9 terminar lectura.
+            
+            mov [bx + si], al ; Recorrer una posicion de la lectura del string.
+            inc si
+            jmp leerSiguienteCaracter
+        
+        terminarLectura:
+            
+            mov al, "$"
+            mov [bx + si], al
+            
+            pop si
+            pop bx
+            pop ax
+    
+    
+    
+         lea bx, num1
+    
+         push ax 
+         push bx 
+         push cx 
+         push dx 
+         push si                                                                
+                                      
+         bucle:
+                           
+             mov cl, [bx + si]; Cargar caracteres.
+             cmp cl, "$"
+             je convertirFinal
+             cmp cl, "-"
+             je negativo
+                  
+             mov ax, 0Ah
+             mov cx, vA
+             mul cx
+            
+             mov vA, ax
+             xor cx, cx
+             mov cl, [bx + si]
+                    
+             sub cl, 30h ; Convertir ASCII a numero.
+             add vA, cx
+                                                               
+             inc si
+             jmp bucle
+             
+             negativo:
+          
+            mov bA, 01h
+            inc si
+            jmp bucle  
+                     
+         convertirFinal:
+                     
+            pop si
+            pop dx
+            pop cx
+            pop bx
+            pop ax
+            mov dx, vA
+            mov vA, 0h
+            
+            cmp bA, 01h
+            je negar
+            
+            
+            negar:
+            
+            neg dx
+            mov bA, 0h
+                
+                
+            mov pn, dx           
+    
+            mov ah, 02h
+            mov dl, 0Ah
+            int 21h
+          
+
+            mov ah, 02h
+            mov dl, 0Dh
+            int 21h 
+            
+            
+            
+            
+;Imprime el segundo numero y lo guarda
+        mov ah, 09h
+        lea dx, msg2
+        int 21h
+    
+        mov ah, 02h
+        mov dl, 0Ah
+        int 21h
+          
+
+        mov ah, 02h
+        mov dl, 0Dh
+        int 21h  
+    
+    
+        mov si,0
+    
+        lea bx, num2
+    
+        push ax
+        push bx
+        push si
+               
+        ; Cargar en la pila los datos ingresados, clonar los registros, evitar dejar residuos de su maniupulacion.
+        
+        xor si, si
+        
+        leerSiguienteCaracter1:
+        
+        mov ah, 01h ; Ejecutar la funcion 01h de la interrupcion 21h que permite leer un solo caracter, almacenado en al.
+        int 21h
+                  
+        ; Proceso de validacion del numero          
+                  
+        cmp al, "-" 
+            jne procesarDigito1;salto condicional, se produce si la comparacion anterior es falsa.
+        cmp si, 0h
+            jne terminarLectura1
+        
+        mov [bx + si], al ; Alojar el dato digitado.
+        inc si ; Incrementar 1 para comparar la siguiente posicion del string. 
+        
+        jmp leerSiguienteCaracter1
+        
+        procesarDigito1:
+            
+            cmp al, "0"
+                jl terminarLectura1 ;  si es menor que 0 terminar lectura.
+            cmp al, "9"
+                jg terminarLectura1 ;  si es mayor que 9 terminar lectura.
+            
+            mov [bx + si], al ; Recorrer una posicion de la lectura del string.
+            inc si
+            jmp leerSiguienteCaracter1
+        
+        terminarLectura1:
+            
+            mov al, "$"
+            mov [bx + si], al
+            
+            pop si
+            pop bx
+            pop ax
+            
+            
+         lea bx, num2
+            
+    
+         push ax 
+         push bx 
+         push cx 
+         push dx 
+         push si 
+                                      
+         bucle1:
+                           
+            mov cl, [bx + si]; Cargar caracteres.
+            cmp cl, "$"
+            je convertirFinal1
+            cmp cl, "-"
+            je negativo1
+                  
+            mov ax, 0Ah
+            mov cx, vA
+            mul cx
+            
+            mov vA, ax
+            xor cx, cx
+            mov cl, [bx + si]
+                    
+            sub cl, 30h ; Convertir ASCII a numero.
+            add vA, cx
+                                                               
+            inc si
+            jmp bucle1
+             
+             negativo1:
+          
+            mov bA, 01h
+            inc si
+            jmp bucle1  
+                     
+         convertirFinal1:
+                     
+            pop si
+            pop dx
+            pop cx
+            pop bx
+            pop ax
+            mov dx, vA
+            mov vA, 0h
+            
+            cmp bA, 01h
+            je negar1
+            
+            
+            negar1:
+            
+            neg dx
+            mov bA, 0h
+                
+                
+            mov sn, dx           
+    
+            mov ah, 02h
+            mov dl, 0Ah
+            int 21h
+          
+
+            mov ah, 02h
+            mov dl, 0Dh
+            int 21h    
+            
+               
+;Imprime cual operacion desea realizar y lo guarda
+            mov ah, 09h
+            lea dx, msg3
+            int 21h
+    
+            mov ah, 02h
+            mov dl, 0Ah
+            int 21h
+          
+
+            mov ah, 02h
+            mov dl, 0Dh
+            int 21h  
+    
+    
+            mov si,0
+    
+            
+            mov ah, 01h
+            int 21h
+            mov num3 [si], al
+            
+            mov ah, 02h
+            mov dl, 0Ah
+            int 21h
+          
+
+            mov ah, 02h
+            mov dl, 0Dh
+            int 21h 
+            
+            
+            
+            
+            
+            
+            
+             
+        
+;Sistema para comparar y decidir que operacion va a hacer        
+        
+        cmp num3, 31h
+        jne jump1 
+        
+            call operarsuma
+            
+            mov ah, 09h
+            mov dx, offset msg4
+            int 21h  
+            
+            
+            mov ah, 02h
+            mov dl, 0Ah
+            int 21h
+            
+            mov ah, 02h
+            mov dl, 0Dh
+            int 21h
+
+     
+            
+            mov ah, 09h
+            mov dx, offset R
+            int 21h       
+            
+            jmp salida        
+        
+jump1:
+        cmp num3, 32h
+        jne jump2 
+            
+            call operarresta
+            
+            mov ah, 09h
+            mov dx, offset msg4
+            int 21h  
+            
+            
+            mov ah, 02h
+            mov dl, 0Ah
+            int 21h
+            
+            mov ah, 02h
+            mov dl, 0Dh
+            int 21h
+
+     
+            
+            mov ah, 09h
+            mov dx, offset R
+            int 21h
+            
+            jmp salida
+        
+jump2:
+        cmp num3, 33h
+        jne jump3
+        
+            call operarmulti
+            
+           
+            
+            mov ah, 09h
+            mov dx, offset msg4
+            int 21h  
+            
+            
+            mov ah, 02h
+            mov dl, 0Ah
+            int 21h
+            
+            mov ah, 02h
+            mov dl, 0Dh
+            int 21h
+
+     
+            
+            mov ah, 09h
+            mov dx, offset R
+            int 21h     
+        
+        jmp salida 
+        
+        
+jump3:
+        cmp num3, 34h 
+        
+            call operardiv
+        
+            mov ah, 09h
+            mov dx, offset msg4
+            int 21h  
+            
+            
+            mov ah, 02h
+            mov dl, 0Ah
+            int 21h
+            
+            mov ah, 02h
+            mov dl, 0Dh
+            int 21h
+
+     
+            
+            mov ah, 09h
+            mov dx, offset R
+            int 21h 
+            
+        
+        
+        
+            jmp salida
+                        
+salida: 
+                   
+       .exit 
+    main ENDP 
+    
+operarsuma proc
+        
+        push ax           
+        push bx
+        push cx
+        push dx
+        push si
+        
+        mov ax, pn       
+        mov bx, sn          
+        
+        add ax, bx         
+        mov OP, ax          
+        
+        cmp OP, 0h         
+        jns positivo        
+        
+        neg OP            
+        mov bA, 01h         
+            
+        positivo:
+        
+        call divisionEuclidea   
+        
+        pop si       
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        
+        ret
+        
+        operarsuma endp
+        
+        
+     divisionEuclidea proc
+        
+        xor ax, ax
+        xor bx, bx
+        xor dx, dx
+        mov ax, OP
+        mov bx, 0Ah
+        mov si, 0h
+        
+        division:
+                     
+            div bx
+            add dx, 30h 
+            mov [V + si], dl
+            xor dx, dx 
+            inc si
+            
+            cmp ax, 0
+            jne division
+            
+            cmp bA, 01h
+            jne sinSigno
+            
+            
+            sinSigno:
+                                     
+            call invertir
+            
+            ret
+       
+        divisionEuclidea endp
+       
+    
+      invertir proc
+                 
+        push si 
+        push di
+        
+        dec si
+        mov di, 0h
+              
+        proceso:  
+                           
+           mov al, V [si]     
+           mov [R + di], al    
+           
+           dec si
+           inc di
+           
+           cmp si, -1h
+           jne proceso
+           
+         mov R[di], "$"         
+         
+         pop di
+         pop si
+                     
+         ret
+        
+        invertir endp  
+      
+operarmulti proc
+        
+        push ax     
+        push bx
+        push cx
+        push dx
+        push si
+        
+        mov ax, pn          
+        mov bx, sn           
+        mul bx             
+        mov OP, ax          
+         
+         
+        cmp OP, 0h
+        jns positivo1
+        
+        neg OP
+        mov bA, 01h
+            
+        positivo1:
+        
+        call divisionEuclidea   
+        
+        pop si       
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        
+
+        
+        ret
+        
+        operarmulti endp
+ 
+ 
+operarresta proc
+        
+        push ax      
+        push bx
+        push cx
+        push dx
+        push si
+        
+        mov ax, pn      
+        mov bx, sn         
+        sub ax, bx         
+        mov OP, ax         
+         
+         
+        cmp OP, 0h
+        jns positivo2
+        
+        neg OP
+        mov bA, 01h
+            
+        positivo2:
+        
+        call divisionEuclidea   
+        
+        pop si       
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        
+
+        
+        ret
+        
+
+operarresta endp 
+
+
+operardiv proc
+        
+        push ax           
+        push bx
+        push cx
+        push dx
+        push si
+        
+        
+        mov ax, pn            
+         
+        xor dx, dx            
+        
+        mov bx, sn          
+        
+        cwd                    
+        idiv bx               
+        
+        
+        mov OP, ax             
+         
+        cmp OP, 0h
+        jns positivo3
+        
+        neg OP
+        mov bA, 01h
+            
+        positivo3: 
+            
+        
+        call divisionEuclidea
+        
+          
+        
+        pop si       
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        
+
+        
+        ret       
+
+operardiv endp
+
+
+   
+    
+
+
+
+end main
